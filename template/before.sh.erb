@@ -10,8 +10,8 @@ export host="${host}"
 # Generate SHA1 encrypted password (requires OpenSSL installed)
 export password="$(create_passwd 16)"
 
-if ! command -v $HOME/.local/bin/copilot >/dev/null 2>&1
-then
-    echo "copilot cli could not be found, installing"
-    curl -fsSL https://gh.io/copilot-install | bash
-fi
+#if ! command -v $HOME/.local/bin/copilot >/dev/null 2>&1
+#then
+#    echo "copilot cli could not be found, installing"
+#    curl -fsSL https://gh.io/copilot-install | bash
+#fi

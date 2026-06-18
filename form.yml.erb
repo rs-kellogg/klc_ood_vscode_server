@@ -33,8 +33,9 @@ attributes:
       - ["KLC Node 0307", "klc0307"]
       - ["KLC Node 0401", "klc0401"]
       - ["KLC Node 0402", "klc0402"]
+      - ["KLC Node 0503", "klc0503"]
       - ["Kellogg Compute Nodes (Slurm)", "quests"]
-    value: "klc0202"
+    value: "klc0304"
     help: |
       Select a KLC node to run directly on Kellogg Computing Center hardware, or
       select Kellogg Compute Nodes (Slurm) to submit a Slurm job on Quest (additional
@@ -83,7 +84,7 @@ attributes:
       you know that your application can be parallelized and also please note that the
       more cores requested, the longer the wait for the session to start.
     min: 1
-    max: 128
+    max: 64
     step: 1
     id: "num_cores"
 
@@ -94,7 +95,7 @@ attributes:
     help: |
       How much total memory/RAM do you need in GB.
     min: 1
-    max: 243
+    max: 2048
     step: 1
     id: "memory_per_node"
 
