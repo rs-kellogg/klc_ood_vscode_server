@@ -1,0 +1,75 @@
+<%
+  is_klc    = !cluster.to_s.start_with?('quest')
+  ppn       = num_cores.blank? ? 1 : num_cores.to_i
+  walltime  = (bc_num_hours.to_i * 60)
+%>
+---
+<% if is_klc %>
+batch_connect:
+  template: basic
+  websockify_cmd: '/usr/bin/websockify'
+script:
+  native:
+    singularity_bindpath: "/etc/slurm,/usr/bin/sbatch,/usr/bin/srun,/usr/bin/sacct,/usr/bin/scontrol,/usr/bin/salloc,/usr/bin/scancel,/usr/bin/squeue,/usr/lib64/slurm/,/usr/lib64/libmunge.so.2,/usr/lib64/libmunge.so.2.0.0,/usr/lib64/libpmi2.so,/usr/lib64/libpmi2.so.0,/usr/lib64/libpmi2.so.0.0.0,/usr/lib64/libpmi.so,/usr/lib64/libpmi.so.0,/usr/lib64/libpmi.so.0.0.0,/usr/lib64/libnvidia-ml.so.1,/run,/usr/local/pmix,/usr/local/hwloc,/usr/local/libevent,/usr/local/spack_v20d1,/usr/local/ucx/,/gpfs,/hpc,/kellogg,/projects,/software,/scratch"
+    singularity_container: /software/rhel8/quest_ondemand/quest_ood_vscode_server/rhel8-vscode-server-4.93.sif
+<% else %>
+batch_connect:
+  template: basic
+  websockify_cmd: '/usr/bin/websockify'
+  before_script: |
+    # Export the module function if it exists
+    [[ $(type -t module) == "function"  ]] && export -f module
+  script_wrapper: |
+    module purge
+    module load singularityce/4.3.1-gcc-8.5.0
+    cat << "CTRSCRIPT" > container.sh
+    export PATH="$PATH:/opt/TurboVNC/bin"
+    %s
+    CTRSCRIPT
+
+    export container_image=/software/rhel8/quest_ondemand/desktops/gnome/quest-ood-gnome-desktop.sif
+
+    ## bind some extra stuff to be able to talk to slurm from within the container
+    export SINGULARITY_BIND="/etc/slurm,/usr/bin/sbatch,/usr/bin/srun,/usr/bin/sacct,/usr/bin/scontrol,/usr/bin/salloc,/usr/bin/scancel,/usr/bin/squeue,/usr/lib64/slurm/,/usr/lib64/libmunge.so.2,/usr/lib64/libmunge.so.2.0.0,/usr/lib64/libpmi2.so,/usr/lib64/libpmi2.so.0,/usr/lib64/libpmi2.so.0.0.0,/usr/lib64/libpmi.so,/usr/lib64/libpmi.so.0,/usr/lib64/libpmi.so.0.0.0,/usr/lib64/libnvidia-ml.so.1,/run,/usr/local/pmix,/usr/local/hwloc,/usr/local/libevent,/usr/local/spack_v20d1,/usr/local/ucx/,/gpfs,/hpc,/kellogg,/projects,/software,/scratch"
+
+
+    <%- if gres_value != "" %>
+    export SING_GPU="--nv"
+    <%- else %>
+    export SING_GPU=""
+    <%- end %>
+
+    singularity exec $SING_GPU $SING_BINDS "${container_image}" /bin/bash container.sh
+
+  header: |
+    #!/bin/bash
+        . ~/.bashrc
+
+script:
+  <%- if user_email != "" %>
+  email_on_started: true
+  <%- end %>
+  native:
+    - "--partition"
+    - "<%= slurm_partition %>"
+    - "--account"
+    - "<%= slurm_account %>"
+    - "--time"
+    - "<%= walltime %>"
+    - "--nodes"
+    - "1"
+    - "--ntasks-per-node"
+    - "<%= ppn %>"
+    - "--mem"
+    - "<%= memory_per_node %>G"
+    - "--job-name"
+    - "<%= job_name %>"
+    <%- if user_email != "" %>
+    - "--mail-user"
+    - "<%= user_email %>"
+    <%- end %>
+    <%- if gres_value != "" %>
+    - "--gres"
+    - "<%= gres_value %>"
+    <%- end %>
+<% end %>

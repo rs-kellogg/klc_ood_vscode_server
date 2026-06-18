@@ -1,0 +1,123 @@
+# Batch Connect app configuration file
+#
+# @note Used to define the submitted cluster, title, description, and
+form:
+  - cluster
+  - bc_num_hours
+  - project_directory
+  # Quest Slurm fields (hidden when a KLC node is selected)
+  - slurm_partition
+  - gres_value
+  - slurm_account
+  - num_cores
+  - memory_per_node
+  - user_email
+  - job_name
+  # Hidden fields used by JavaScript to build partition/account dropdowns
+  - raw_data
+  - raw_group_data
+
+attributes:
+  cluster:
+    label: "Cluster"
+    widget: select
+    options:
+      - ["KLC Node 0202", "klc0202"]
+      - ["KLC Node 0203", "klc0203"]
+      - ["KLC Node 0301", "klc0301"]
+      - ["KLC Node 0302", "klc0302"]
+      - ["KLC Node 0303", "klc0303"]
+      - ["KLC Node 0304", "klc0304"]
+      - ["KLC Node 0305", "klc0305"]
+      - ["KLC Node 0306", "klc0306"]
+      - ["KLC Node 0307", "klc0307"]
+      - ["KLC Node 0401", "klc0401"]
+      - ["KLC Node 0402", "klc0402"]
+      - ["Kellogg Compute Nodes (Slurm)", "quests"]
+    value: "klc0202"
+    help: |
+      Select a KLC node to run directly on Kellogg Computing Center hardware, or
+      select Kellogg Compute Nodes (Slurm) to submit a Slurm job on Quest (additional
+      fields will appear).
+
+  bc_num_hours:
+    label: "Wall Clock Time"
+    help: |
+      The maximum number of hours the session will run for. You can always terminate
+      your session early, but it will automatically be terminated once the walltime is hit.
+    value: 1
+
+  project_directory:
+    label: "Which folder would you like to launch the Copilot CLI from"
+    help: |
+      Which folder would you like to launch the Copilot CLI from.
+
+  slurm_partition:
+    label: "SLURM Partition"
+    help: |
+      The SLURM partition you want to submit to. This selection will influence which
+      accounts you can choose as some partitions can only be submitted to through
+      certain accounts.
+    value: kellogg
+
+  slurm_account:
+    label: "SLURM Account/Project Name"
+    help: |
+      The SLURM account (i.e., the value of the -A or --account flag used when
+      submitting a SLURM job).
+    value: kellogg
+
+  gres_value:
+    label: "Type of GPU that you would like to request"
+    help: |
+      If you are submitting to `gengpu` the only option that you can select is `A100`.
+    widget: select
+    default: ""
+
+  num_cores:
+    widget: "number_field"
+    label: "Number of CPUs/cores/processors"
+    value: 1
+    help: |
+      Please note that you likely do not need to request more than a single CPU unless
+      you know that your application can be parallelized and also please note that the
+      more cores requested, the longer the wait for the session to start.
+    min: 1
+    max: 128
+    step: 1
+    id: "num_cores"
+
+  memory_per_node:
+    widget: "number_field"
+    label: "Total memory or RAM do you need in GB."
+    value: 5
+    help: |
+      How much total memory/RAM do you need in GB.
+    min: 1
+    max: 243
+    step: 1
+    id: "memory_per_node"
+
+  user_email:
+    label: "Email Address (Optional)"
+    help: |
+      Enter your email address if you would like to receive an email when the session
+      starts. Leave blank for no email.
+
+  job_name:
+    label: "Job Name"
+    value: "vscode-copilot"
+    help: |
+      The name of the Slurm job as it will appear in the queue.
+
+  raw_data:
+    label: "Account associations for use by JavaScript"
+    widget: hidden_field
+    value: "<%= RawSlurmData.read_sinfo_from_file %>"
+    cacheable: false
+
+  raw_group_data:
+    label: "linux groups for use by JavaScript"
+    widget: hidden_field
+    value: "<%= RawSlurmData.rawgroupdata %>"
+    cacheable: false

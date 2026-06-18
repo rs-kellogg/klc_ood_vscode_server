@@ -1,0 +1,10 @@
+---
+name: KLC VS Code Server
+icon: fa://server
+category: Kellogg Linux Cluster
+subcategory: Servers
+role: batch_connect
+description: |
+  Run [VS Code] through the browser.
+
+  [VS Code]: https://github.com/Microsoft/vscode
