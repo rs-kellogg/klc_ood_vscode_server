@@ -10,7 +10,12 @@ export PASSWORD="$password"
 # Start Code Server.
 #
 echo "$(date): Started code-server"
-echo ""
+
+<%- if context.project_directory != "" %>
+export VSCODE_PROJECT_DIR=<%= context.project_directory %>
+<%- else %>
+export VSCODE_PROJECT_DIR=${HOME}
+<%- end %>
 
 code-server \
     --auth="password" \
@@ -19,4 +24,4 @@ code-server \
     --ignore-last-opened \
     --user-data-dir="$CODE_SERVER_DATAROOT" \
     --log debug \
-    <%= context.project_directory %>
+    ${VSCODE_PROJECT_DIR}
