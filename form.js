@@ -23,6 +23,26 @@ function is_quest_cluster() {
   return $("#batch_connect_session_context_cluster").val() === 'quests';
 }
 
+/** Returns true when the selected cluster is a KLC cluster (e.g. klc0202, klc0301) */
+function is_klc_cluster() {
+  return $("#batch_connect_session_context_cluster").val().startsWith('klc');
+}
+
+/** Remove any walltime maximum restriction and set default to 72 hours (used for KLC cluster) */
+function clear_walltime_max() {
+  $("#batch_connect_session_context_bc_num_hours").attr({
+    "max": "",
+    "min": 1,
+  }).val(72);
+}
+
+/** Set default field values for cores and memory when Quest cluster is selected */
+function set_quest_field_defaults() {
+  $("#num_cores").val(1);
+  $("#memory_per_node").val(16);
+  $("#batch_connect_session_context_bc_num_hours").val(24);
+}
+
 /** Show or hide all Quest-specific Slurm fields based on cluster selection */
 function toggle_quest_fields() {
   const show = is_quest_cluster();
@@ -53,6 +73,8 @@ function convert_timelimit(TIMELIMIT) {
 function convert_gpu_partitions(GRES) {
     const gpu_options = [];
     if (GRES.length !== 0) {
+        // blank option first so no GPU is requested by default
+        gpu_options.push('');
         for (const ind_gres of GRES) {
             const gpu_info = ind_gres.split(':');
             if (gpu_info.length > 2){
@@ -69,7 +91,6 @@ function convert_gpu_partitions(GRES) {
                 }
             }
         }
-        gpu_options.push('');
     }
     return [...new Set(gpu_options)]
 }
@@ -174,17 +195,20 @@ function set_min_max(assocs) {
   const max_walltime = [...new Set((assocs.map(({ maxtime }) => maxtime)))][0];
   const max_mem = Number([...new Set((assocs.map(({ max_mem }) => max_mem)))][0].replace('+', ''));
 
-  if (max_walltime === 0) {
-    $("#batch_connect_session_context_bc_num_hours").attr({
-       "max" : "",
-       "min" : 1,
-    });
-  } else {
-    $("#batch_connect_session_context_bc_num_hours").attr({
-       "max" : max_walltime,
-       "min" : 1,
-    });
-  };
+  // Only enforce a walltime max on Quest; KLC has no walltime restriction
+  if (is_quest_cluster()) {
+    if (max_walltime === 0) {
+      $("#batch_connect_session_context_bc_num_hours").attr({
+         "max" : "",
+         "min" : 1,
+      });
+    } else {
+      $("#batch_connect_session_context_bc_num_hours").attr({
+         "max" : max_walltime,
+         "min" : 1,
+      });
+    }
+  }
 
   if (max_mem > 264000) {
     $("#memory_per_node").attr({
@@ -231,6 +255,9 @@ function set_cluster_change_handler() {
       toggle_gres_value_field_visibility(assocs);
       update_constraint_options(assocs);
       update_min_max(assocs);
+      set_quest_field_defaults();
+    } else if (is_klc_cluster()) {
+      clear_walltime_max();
     }
   });
 }
@@ -312,6 +339,9 @@ $(document).ready(function() {
     toggle_gres_value_field_visibility(assocs);
     update_constraint_options(assocs);
     update_min_max(assocs);
+    set_quest_field_defaults();
+  } else if (is_klc_cluster()) {
+    clear_walltime_max();
   }
 
   toggle_number_of_nodes_visibility();
